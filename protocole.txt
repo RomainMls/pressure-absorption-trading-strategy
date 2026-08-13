@@ -1,0 +1,17 @@
+| Parameter               |                    Value |
+| ----------------------- | -----------------------: |
+| Traded asset            |             ETHUSDT spot |
+| Market reference        |             BTCUSDT spot |
+| Bar interval            |               10 seconds |
+| Shock window            |                5 minutes |
+| Normalization history   |         Previous 30 days |
+| Shock threshold         |           1st percentile |
+| Absorption confirmation |               60 seconds |
+| Minimum rebound         |         50% of the shock |
+| Time before retest      |               30 minutes |
+| Scar expiration         |                 72 hours |
+| Retest pressure         | ≥ 70% of the first shock |
+| Hysteresis score        |               (H \geq 3) |
+| Maximum trade duration  |               90 minutes |
+| Trading fees            |           0.10% per side |
+| Slippage                |           0.02% per side |
