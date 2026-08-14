@@ -4,7 +4,6 @@ import math
 
 BAR_LENGTH = 10
 
-
 class Line:
     def __init__(self, aggregate_trade_id, price, quantity, first_trade_id, last_trade_id, timestamp, is_buyer_maker, is_best_match):
         self.aggregate_trade_id = aggregate_trade_id
@@ -68,24 +67,13 @@ class ComputedData:
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(
-    "--input",
-    required=True,
-    help="Csv to read"
-)
+parser.add_argument("--input", required=True, help="Csv to read")
 
-parser.add_argument(
-    "--output",
-    required=True,
-    help="Output file with new computed columns"
-)
+parser.add_argument("--output", required=True, help="Output file with new computed columns")
 
-parser.add_argument(
-    "--rows",
-    required=False,
-    type=int,
-    help="Number of lines to process"
-)
+parser.add_argument("--rows", required=False, type=int, help="Number of lines to process")
+
+parser.add_argument("--days", required=False, type=int, help="Number of days to process")
 
 args = parser.parse_args()
 
@@ -97,6 +85,7 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
     writer = csv.writer(output_file)
 
     writer.writerow([
+        "timestamp",
         "open",
         "high",
         "low",
@@ -135,6 +124,9 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
         if first_bar_start_ms is None:
             # First bar Example : 70000 // 10000 -> 7 * (10000) = 70000
             first_bar_start_ms = (timestamp_ms // (BAR_LENGTH * 1000)) * (BAR_LENGTH * 1000)
+            
+        if first_bar_start_ms + 86_400_000 * args.days <= timestamp_ms:
+            break
 
         aggregate_trade_id = csv_line[0]
         price = float(csv_line[1])
@@ -149,7 +141,6 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
         is_best_match = csv_line[7].strip().lower() == "true"
 
         line = Line(aggregate_trade_id, price, quantity, first_trade_id, last_trade_id, normalized_timestamp_sec, is_buyer_maker, is_best_match)
-        print(line)
 
         # To jump empty intervals
         while normalized_timestamp_sec >= interval_end:
@@ -183,8 +174,10 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
 
             computed_data = ComputedData(open_price, high, low, close, quote_volume, signed_quote_volume, aggressive_buy_volume, aggressive_sell_volume, imbalance, log_return, trade_count)
 
-
+            interval_start_timestamp = first_bar_start_ms + (interval_end - BAR_LENGTH) * 1000
+            
             writer.writerow([
+                interval_start_timestamp,
                 computed_data.open,
                 computed_data.high,
                 computed_data.low,
@@ -197,8 +190,6 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
                 computed_data.log_return,
                 computed_data.trade_count
             ])
-
-            print(computed_data)
 
             last_computed_data = computed_data
 
@@ -253,7 +244,10 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
 
         computed_data = ComputedData(open_price, high, low, close, quote_volume, signed_quote_volume, aggressive_buy_volume, aggressive_sell_volume, imbalance, log_return, trade_count)
 
+        interval_start_timestamp = first_bar_start_ms+ (interval_end - BAR_LENGTH) * 1000
+
         writer.writerow([
+            interval_start_timestamp,
             computed_data.open,
             computed_data.high,
             computed_data.low,
@@ -266,5 +260,3 @@ with open(args.input, "r", encoding="utf-8", newline="") as input_file, \
             computed_data.log_return,
             computed_data.trade_count
         ])
-
-        print(computed_data)
